@@ -5,11 +5,14 @@ std::riemann_zeta ζ
 Refs:
 	https://github.com/junpeitsuji/iwannatouchzeta
 	http://mathonline.wikidot.com/the-complex-cosine-and-sine-functions
+	https://math.stackexchange.com/questions/437883/what-is-the-analytic-continuation-of-the-riemann-zeta-function
+	https://mathworld.wolfram.com/GammaFunction.html
 #include <Windows.h> + SetConsoleOutputCP(CP_UTF8);
 */
 
 #include <SDL.h>
 #include <iostream>
+#include <cmath>
 #include <complex>
 #include <deque>
 #include <algorithm>
@@ -31,7 +34,7 @@ int main(int argc, char* argv[])
 	SDL_Event event;
 	bool run = true;
 	long double counter = 0;
-	int x, y, lastX, lastY;
+	int x, y, lastX, lastY, iCt = 0;
 	std::deque<std::complex<long double>> points;
 	SDL_CreateWindowAndRenderer(WIDTH, HEIGHT, 0, &window, &renderer);
 	SDL_SetWindowTitle(window, "Riemann ζ(Zeta) Function Critical Strip Plot ");
@@ -40,13 +43,15 @@ int main(int argc, char* argv[])
 
 	while (run)
 	{
+		iCt++;
+		SDL_RenderClear(renderer);
 		SDL_SetRenderDrawColor(renderer, 50, 50, 50, 255);
 		SDL_RenderDrawLine(renderer, 0, HEIGHT / 2, WIDTH, HEIGHT / 2);
 		SDL_RenderDrawLine(renderer, WIDTH / 2, 0, WIDTH / 2, HEIGHT);
 
 		SDL_Color c = HSVtoRGB(counter * 10);
 		SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, 255);
-		auto s = complex_zeta(std::complex<long double>(0.5, counter));
+		auto s = ζ(std::complex<long double>(0.5, counter));
 
 		points.push_back(s);
 		if (points.size() > 1000)
@@ -64,8 +69,12 @@ int main(int argc, char* argv[])
 		}
 		SDL_RenderPresent(renderer);
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-		SDL_RenderClear(renderer);
 		counter += .01;
+
+		//SDL_Surface* ss = SDL_GetWindowSurface(window);
+		//SDL_RenderReadPixels(renderer, NULL, SDL_PIXELFORMAT_ARGB8888, ss->pixels, ss->pitch);
+		//SDL_SaveBMP(ss, std::string("").append("D:/frames/").append(std::to_string(iCt)).append(".bmp").c_str());
+		//SDL_FreeSurface(ss);
 
 		Uint32 timeout = SDL_GetTicks() + 1;
 		do

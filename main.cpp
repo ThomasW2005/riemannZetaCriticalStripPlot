@@ -12,12 +12,11 @@ Refs:
 #include <iostream>
 #include <complex>
 #include <deque>
+#include <algorithm>
 #include "zeta.h"
 
 constexpr int WIDTH = 1280;
-//constexpr int WIDTH = 500;
 constexpr int HEIGHT = 720;
-//constexpr int HEIGHT = 400;
 constexpr float AR = (float)HEIGHT / WIDTH;
 
 long double map(long double x, long double in_min, long double in_max, long double out_min, long double out_max);
@@ -48,18 +47,19 @@ int main(int argc, char* argv[])
 		SDL_Color c = HSVtoRGB(counter * 10);
 		SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, 255);
 		auto s = complex_zeta(std::complex<long double>(0.5, counter));
+
 		points.push_back(s);
 		if (points.size() > 1000)
 			points.pop_front();
+
 		for (int i = 0; i < points.size() - 1; i++)
 		{
 			long double adjustedCounter = counter - .010 * i;
-			SDL_Color c = HSVtoRGB(adjustedCounter * 10, 1., map(adjustedCounter, counter - .010 * points.size(), counter, 1.0, 0.0));
+			SDL_Color c = HSVtoRGB(adjustedCounter * 10, 1., std::clamp((float)map(adjustedCounter, counter - .010 * points.size(), counter, 3.0, 0.0), (float)0.0, (float)1.0));
 			SDL_SetRenderDrawColor(renderer, c.r, c.g, c.b, 255);
 
 			translateComplex(points[i], x, y, -4, 4, -4, 4);
 			translateComplex(points[i + 1], lastX, lastY, -4, 4, -4, 4);
-			//auto h = points[static_cast<std::deque<std::complex<long double>, std::allocator<std::complex<long double>>>::size_type>(i) + 1];
 			SDL_RenderDrawLine(renderer, lastX, lastY, x, y);
 		}
 		SDL_RenderPresent(renderer);
@@ -128,46 +128,21 @@ SDL_Color HSVtoRGB(float h, float s, float v)
 	float r, g, b;
 	int i;
 	float f, p, q, t;
-	if (s == 0) {
+	if (s == 0)
 		return{ 0, 0, 0 };
-	}
-	h /= 60;			// sector 0 to 5
+	h /= 60;
 	i = floor(h);
-	f = h - i;			// factorial part of h
+	f = h - i;
 	p = v * (1 - s);
 	q = v * (1 - s * f);
 	t = v * (1 - s * (1 - f));
 	switch (i) {
-	case 0:
-		r = v;
-		g = t;
-		b = p;
-		break;
-	case 1:
-		r = q;
-		g = v;
-		b = p;
-		break;
-	case 2:
-		r = p;
-		g = v;
-		b = t;
-		break;
-	case 3:
-		r = p;
-		g = q;
-		b = v;
-		break;
-	case 4:
-		r = t;
-		g = p;
-		b = v;
-		break;
-	default:
-		r = v;
-		g = p;
-		b = q;
-		break;
+	case 0: r = v; g = t; b = p; break;
+	case 1: r = q; g = v; b = p; break;
+	case 2: r = p; g = v; b = t; break;
+	case 3: r = p; g = q; b = v; break;
+	case 4: r = t; g = p; b = v; break;
+	default: r = v; g = p; b = q; break;
 	}
 	return { (unsigned char)(255 * r),(unsigned char)(255 * g),(unsigned char)(255 * b) };
 }
